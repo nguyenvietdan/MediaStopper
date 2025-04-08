@@ -1,9 +1,7 @@
 package com.monkey.mediastopper.di
 
 import android.content.Context
-import android.database.ContentObserver
 import com.monkey.mediastopper.framework.MediaControllerMgr
-import com.monkey.mediastopper.framework.VolumeObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

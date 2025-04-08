@@ -9,7 +9,9 @@ data class MediaItem (
     var state: Int = 0,
     val duration: Long = 0L,
     val position: Long = 0L,
-    val volume: Int = 0
+    val volume: Int = 100, // 0 ~ 100
 ) {
     fun isPlaying() = state == PlaybackState.STATE_PLAYING
+
+    fun isMuted() = volume == 0
 }

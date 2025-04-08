@@ -1,17 +1,15 @@
 package com.monkey.mediastopper.presentations.screens
 
-import android.media.session.PlaybackState
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,7 +27,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.monkey.mediastopper.R
 import com.monkey.mediastopper.model.MediaItem
 import com.monkey.mediastopper.presentations.navigation.Screen
@@ -42,7 +39,7 @@ import kotlinx.coroutines.delay
 fun HomeScreen(stopperViewModel: StopperViewModel) {
     stopperViewModel.updateCurrentScreen(Screen.HomeScreen.route)
     val mediaItems by stopperViewModel.mediaItems.collectAsState()
-    val isMuted by stopperViewModel.isMuted.collectAsState()
+    val volume by stopperViewModel.sharePrefs.volume.collectAsState()
     val mediaState by stopperViewModel.isPlaying.collectAsState()
     LaunchedEffect(mediaState) {
         while (mediaState) {
@@ -50,21 +47,26 @@ fun HomeScreen(stopperViewModel: StopperViewModel) {
             stopperViewModel.tick()
         }
     }
-    Column(
+
+    LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        mediaItems.forEach { item ->
-            MediaControlCard(item = item, title = item.title, isMuted, stopperViewModel)
+        items(mediaItems) { media ->
+            MediaControlCard(media = media, volume == 0, stopperViewModel)
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-fun MediaControlCard(item: MediaItem, title: String, isMuted: Boolean = false, stopperViewModel: StopperViewModel) {
+fun MediaControlCard(
+    media: MediaItem,
+    isMuted: Boolean = false,
+    stopperViewModel: StopperViewModel
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -77,23 +79,23 @@ fun MediaControlCard(item: MediaItem, title: String, isMuted: Boolean = false, s
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(item.appName, style = MaterialTheme.typography.titleMedium)
-            Text("Playing: $title", style = MaterialTheme.typography.bodySmall)
-            Row (
+            Text(media.appName, style = MaterialTheme.typography.titleMedium)
+            Text("Playing: ${media.title}", style = MaterialTheme.typography.bodySmall)
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             )
             {
                 Text(
-                    text = formatTime(item.position)
+                    text = formatTime(media.position)
                 )
                 Text(
-                    text = formatTime(item.duration)
+                    text = formatTime(media.duration)
                 )
             }
-            if (item.duration > 0) {
+            if (media.duration > 0) {
                 LinearProgressIndicator(
-                    progress = { item.position.toFloat() / item.duration },
+                    progress = { media.position.toFloat() / media.duration },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -102,10 +104,12 @@ fun MediaControlCard(item: MediaItem, title: String, isMuted: Boolean = false, s
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(top = 8.dp)
             ) {
-                TextButton(onClick = { /* Mute */ }) {
+                TextButton(onClick = {
+                    stopperViewModel.muteOrUnMuteMedia(media.pkgName)
+                }) {
                     Icon(
                         painter = painterResource(
-                            if (isMuted) {
+                            if (isMuted || media.isMuted()) {
                                 R.drawable.baseline_volume_off_24
                             } else {
                                 R.drawable.baseline_volume_up_24
@@ -116,11 +120,11 @@ fun MediaControlCard(item: MediaItem, title: String, isMuted: Boolean = false, s
                 }
                 //baseline_play_arrow_24
                 TextButton(onClick = {
-                    stopperViewModel.pauseOrPlay(item.pkgName, item.state)
+                    stopperViewModel.pauseOrPlay(media.pkgName, media.isPlaying())
                 }) {
                     Icon(
                         painter = painterResource(
-                            if (item.state == PlaybackState.STATE_PLAYING) {
+                            if (media.isPlaying()) {
                                 R.drawable.baseline_pause_24
                             } else {
                                 R.drawable.baseline_play_arrow_24
@@ -130,7 +134,7 @@ fun MediaControlCard(item: MediaItem, title: String, isMuted: Boolean = false, s
                     )
                 }
                 TextButton(onClick = {
-                    stopperViewModel.stopMedia(item.pkgName)
+                    stopperViewModel.stopMedia(media.pkgName)
                 }) {
                     Icon(
                         painter = painterResource(R.drawable.baseline_stop_24),

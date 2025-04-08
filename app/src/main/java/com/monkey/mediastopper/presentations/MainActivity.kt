@@ -18,13 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
-import com.monkey.mediastopper.framework.MediaControllerHolder
-import com.monkey.mediastopper.framework.MediaControllerMgr
-import com.monkey.mediastopper.model.MediaItem
 import com.monkey.mediastopper.presentations.screens.MediaStopperApp
 import com.monkey.mediastopper.presentations.theme.MediaStopperTheme
 import com.monkey.mediastopper.presentations.viewmodel.StopperViewModel
-import com.monkey.mediastopper.utils.Constants.INVALID_STATE
+import com.monkey.mediastopper.utils.Constants.EXTRA_IS_POSTED
+import com.monkey.mediastopper.utils.Constants.EXTRA_PACKAGE
 import com.monkey.mediastopper.utils.Constants.MEDIA_UPDATER
 import com.monkey.mediastopper.utils.Utils.isNotificationServiceEnabled
 import com.monkey.mediastopper.utils.Utils.openNotificationSettings
@@ -32,7 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val TAG = "MainActivity"
+    private val TAG = "MainActivityComponent"
 
     private lateinit var mediaReceiver: BroadcastReceiver
 
@@ -89,25 +87,10 @@ class MainActivity : ComponentActivity() {
     private fun mediaListener(stopperViewModel: StopperViewModel) {
         mediaReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                Log.i(TAG, "onReceive: receive ${intent?.getStringExtra("appName")}")
-                val appName = intent?.getStringExtra("appName") ?: return
-                val title = intent.getStringExtra("title") ?: ""
-                val state = intent.getIntExtra("state", INVALID_STATE)
-                val pkgName = intent.getStringExtra("pkgName") ?: "pkgName"
-                val duration = intent.getLongExtra("duration", 0L) ?: 0L
-                val position = intent.getLongExtra("position", 0L) ?: 0L
-                stopperViewModel.updateMediaInfo(pkgName)
-                Log.i(TAG, "onReceive: currentPosition $position")
-                /*stopperViewModel.updateMediaInfo(
-                    MediaItem(
-                        appName,
-                        title,
-                        pkgName,
-                        state,
-                        duration,
-                        position
-                    )
-                )*/
+                val pkgName = intent?.getStringExtra(EXTRA_PACKAGE) ?: return
+                val isPosted = intent.getBooleanExtra(EXTRA_IS_POSTED, true)
+                Log.i(TAG, "onReceive: receive ${pkgName} ${isPosted}")
+                stopperViewModel.updateMediaInfo(pkgName, isPosted)
             }
         }
         registerBroadcast()

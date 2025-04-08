@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "Media Stopper"
 include(":app")
 include(":domain")
+include(":data")

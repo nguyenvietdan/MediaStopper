@@ -5,12 +5,12 @@ import android.media.VolumeProvider
 import android.media.session.MediaController
 import android.os.SystemClock
 import android.util.Log
-import android.media.MediaMetadata as mm
 import com.monkey.mediastopper.model.MediaItem
 import com.monkey.mediastopper.utils.Utils.getAppNameFromPackage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.media.MediaMetadata as mm
 
 @Singleton
 class MediaControllerMgr @Inject constructor(@ApplicationContext private val context: Context) {
@@ -48,15 +48,16 @@ class MediaControllerMgr @Inject constructor(@ApplicationContext private val con
     fun addController(pkg: String, controller: MediaController) {
         try {
             _controllerMap[pkg] = controller
-            Log.e(TAG, "addController: add success for $pkg")
+            Log.e(TAG, "addController: add success for $pkg state ${controller.playbackState?.state ?: -1}")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create MediaController: ${e.message}")
         }
     }
 
     fun removeMedia(pkg: String) {
-        Log.i(TAG, "removeMedia: $pkg")
+        Log.i(TAG, "removeMedia: $pkg before ${_controllerMap.size}")
         _controllerMap.remove(pkg)
+        Log.e(TAG, "removeMedia: $pkg after ${_controllerMap.size}" )
     }
 
     fun pauseMedia(pkg: String) {
@@ -69,18 +70,30 @@ class MediaControllerMgr @Inject constructor(@ApplicationContext private val con
         _controllerMap[pkg]?.transportControls?.stop()
     }
 
-    fun muteApp(packageName: String) {
+    fun muteApp(packageName: String, value: Int = 0) {
+        _controllerMap[packageName]?.let { controller ->
+            Log.d(TAG, "Muted $packageName")
+            if (controller.playbackInfo.volumeControl == VolumeProvider.VOLUME_CONTROL_ABSOLUTE) {
+                controller.setVolumeTo(value, 0)
+            } else {
+                Log.w(TAG, "App $packageName do not support adjust volume")
+            }
+        }
+    }
+
+    fun adjustVolume(packageName: String, volume: Int) {
         _controllerMap[packageName]?.let { controller ->
             if (controller.playbackInfo.volumeControl == VolumeProvider.VOLUME_CONTROL_ABSOLUTE) {
-                controller.setVolumeTo(0, 0)
-                Log.d(TAG, "Muted $packageName")
+                controller.setVolumeTo(volume, VolumeProvider.VOLUME_CONTROL_FIXED)
+                Log.d(TAG, "adjustVolume $packageName")
             } else {
-                Log.w(TAG, "App $packageName không hỗ trợ điều chỉnh âm lượng")
+                Log.w(TAG, "App $packageName do not support adjust volume")
             }
         }
     }
 
     fun getMediaItem(packageName: String): MediaItem? {
+        Log.i(TAG, "getMediaItem: package $packageName controller ${_controllerMap[packageName]}")
         val mediaController = _controllerMap[packageName] ?: return null
         val metadata = mediaController.metadata
         val title = metadata?.description?.title?.toString() ?: "Unknown"
@@ -91,7 +104,6 @@ class MediaControllerMgr @Inject constructor(@ApplicationContext private val con
         }?.coerceAtMost(durationMs) ?: 0L
 
         val appName = getAppNameFromPackage(context, packageName)
-        Log.i(TAG, "getMediaItem: currentPosition $currentPosition")
 
         val currentVolume = if (mediaController.playbackInfo.volumeControl == VolumeProvider.VOLUME_CONTROL_ABSOLUTE) mediaController.playbackInfo.currentVolume else Int.MAX_VALUE
 
