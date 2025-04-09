@@ -46,6 +46,8 @@ class StopperViewModel @Inject constructor(
         get() = _mediaItems.asStateFlow()
     private val _topBarTitle = MutableStateFlow("")
     val topBarTitle: StateFlow<String> = _topBarTitle.asStateFlow()
+    private val _gesturesEnabled = MutableStateFlow(true)
+    val gesturesEnabled: StateFlow<Boolean> = _gesturesEnabled.asStateFlow()
 
     private var _currentVolume = 1
 
@@ -150,6 +152,10 @@ class StopperViewModel @Inject constructor(
 
     fun unMuteMedia(pkg: String) {
         controllerManager.muteApp(pkg, _currentVolume)
+    }
+
+    fun updateGesturesEnabled(enabled: Boolean) {
+        _gesturesEnabled.value = enabled
     }
 
     private fun getCurrentVolume() =

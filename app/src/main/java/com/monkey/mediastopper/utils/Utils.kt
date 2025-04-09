@@ -87,6 +87,12 @@ object Utils {
         }
     }
 
+    fun formatTimeFromMinute(minute: Int): String {
+        val hours = minute / 60
+        val minutes = minute % 60
+        return String.format("%02d:%02d", hours, minutes)
+    }
+
     fun openNotificationSettings(context: Context) {
         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
         context.startActivity(intent)
