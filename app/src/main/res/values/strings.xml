@@ -16,7 +16,7 @@
     <string name="title_activity_main">MainActivity</string>
 
     <string name="add_timer">Add timer</string>
-    <string name="remain_timer">Medias stop after: %1$s</string>
+    <string name="remain_timer">All media stop after: %1$s</string>
 
 
 </resources>
