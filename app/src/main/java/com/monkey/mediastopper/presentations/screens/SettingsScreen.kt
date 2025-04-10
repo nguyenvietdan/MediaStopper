@@ -10,7 +10,6 @@ import com.monkey.mediastopper.presentations.viewmodel.StopperViewModel
 
 @Composable
 fun SettingsScreen(stopperViewModel: StopperViewModel) {
-    stopperViewModel.updateCurrentScreen(Screen.SettingsScreen.route)
     Text("SettingsScreen")
 }
 

@@ -9,15 +9,9 @@ import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils.equals
 import android.text.TextUtils.isEmpty
-import android.util.Log
-import androidx.compose.ui.geometry.Offset
 import androidx.navigation.NavHostController
 import com.monkey.mediastopper.model.MediaItem
-import com.monkey.mediastopper.utils.Constants.TAG
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.pow
-import kotlin.math.sqrt
+import java.util.concurrent.TimeUnit
 
 object Utils {
 
@@ -104,4 +98,6 @@ object Utils {
         if (index != -1 /*&& item.state != PlaybackState.STATE_STOPPED*/) this[index] = item
         else this.add(item)
     }
+
+    fun changeMinuteToMilliseconds(minute: Long): Long = TimeUnit.MINUTES.toMillis(minute)
 }

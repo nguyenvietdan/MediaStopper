@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.monkey.mediastopper.common.ScheduledMediaStopper
 import com.monkey.mediastopper.presentations.screens.MediaStopperApp
 import com.monkey.mediastopper.presentations.theme.MediaStopperTheme
 import com.monkey.mediastopper.presentations.viewmodel.StopperViewModel
@@ -27,6 +28,7 @@ import com.monkey.mediastopper.utils.Constants.MEDIA_UPDATER
 import com.monkey.mediastopper.utils.Utils.isNotificationServiceEnabled
 import com.monkey.mediastopper.utils.Utils.openNotificationSettings
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

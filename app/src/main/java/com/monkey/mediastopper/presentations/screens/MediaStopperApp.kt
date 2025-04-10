@@ -1,6 +1,7 @@
 package com.monkey.mediastopper.presentations.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,7 @@ import com.monkey.mediastopper.model.DrawerItem
 import com.monkey.mediastopper.presentations.navigation.StopperGraph
 import com.monkey.mediastopper.presentations.theme.MediaStopperTheme
 import com.monkey.mediastopper.presentations.viewmodel.StopperViewModel
+import com.monkey.mediastopper.utils.Constants.TAG
 import com.monkey.mediastopper.utils.Utils.navigateWithPopUpTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -144,6 +146,7 @@ fun DrawerSheetItem(
     screen: String,
     naviGate: (String) -> Unit = {}
 ) {
+    Log.i(TAG, "DrawerSheetItem: ${drawerItem.screenRoute} screen $screen title ${drawerItem.title}")
     NavigationDrawerItem(
         icon = { Icon(drawerItem.icon, contentDescription = drawerItem.title) },
         label = { Text(text = drawerItem.title, style = MaterialTheme.typography.titleLarge) },
@@ -186,7 +189,8 @@ fun MediaStopperAppPreview() {
                 context = TODO(),
                 controllerManager = TODO(),
                 sharePrefs = TODO(),
-                Dispatchers.IO
+                Dispatchers.IO,
+                scheduledMediaStopper = TODO()
             )
         )
     }

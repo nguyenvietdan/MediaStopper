@@ -1,6 +1,9 @@
 package com.monkey.mediastopper.framework
 
 import android.content.Context
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
 import android.media.VolumeProvider
 import android.media.session.MediaController
 import android.os.SystemClock
@@ -68,6 +71,20 @@ class MediaControllerMgr @Inject constructor(@ApplicationContext private val con
     fun stopMedia(pkg: String) {
         Log.i(TAG, "stopMedia: $pkg")
         _controllerMap[pkg]?.transportControls?.stop()
+    }
+
+    fun stopAllMedia() {
+        _controllerMap.values.forEach {
+            it.transportControls.stop()
+        }
+    }
+
+    fun stopAllMediaByChangeFocus() {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.abandonAudioFocusRequest(
+            AudioFocusRequest.Builder(AUDIOFOCUS_REQUEST_GRANTED)
+            .build()
+        )
     }
 
     fun muteApp(packageName: String, value: Int = 0) {

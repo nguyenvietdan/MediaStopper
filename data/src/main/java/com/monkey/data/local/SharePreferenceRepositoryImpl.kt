@@ -7,10 +7,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.monkey.domain.repository.SharePreferenceRepository
 import com.monkey.domain.repository.SharePreferenceRepository.Constants.BASE_SHARE_PREFS
+import com.monkey.domain.repository.SharePreferenceRepository.Constants.KEY_MAX_STOP_TIMER
+import com.monkey.domain.repository.SharePreferenceRepository.Constants.KEY_STOP_TIMER
 import com.monkey.domain.repository.SharePreferenceRepository.Constants.KEY_VOLUME
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +37,12 @@ class SharePreferenceRepositoryImpl @Inject constructor(private val context: Con
     private val _volume = VOLUME.createFlow(1)
     override val volume: StateFlow<Int> = _volume.asStateFlow()
 
+    private val _stopTimer = STOP_TIMER.createFlow(-1L)
+    override val stopTimer: StateFlow<Long> = _stopTimer.asStateFlow()
+
+    private val _maxStopTimer = MAX_STOP_TIMER.createFlow(100F)
+    override val maxStopTimer: StateFlow<Float> = _maxStopTimer.asStateFlow()
+
     override fun setCurrentVolume(volume: Int) {
         _volume.value = volume
     }
@@ -44,6 +54,14 @@ class SharePreferenceRepositoryImpl @Inject constructor(private val context: Con
                 KEY_VOLUME -> {
                     preferences[VOLUME] = value as Int
                     _volume.value = value
+                }
+                KEY_STOP_TIMER -> {
+                    preferences[STOP_TIMER] = value as Long
+                    _stopTimer.value = value
+                }
+                KEY_MAX_STOP_TIMER -> {
+                    preferences[MAX_STOP_TIMER] = value as Float
+                    _maxStopTimer.value = value
                 }
             }
         }
@@ -89,5 +107,7 @@ class SharePreferenceRepositoryImpl @Inject constructor(private val context: Con
 
     companion object {
         private val VOLUME = intPreferencesKey(KEY_VOLUME)
+        private val STOP_TIMER = longPreferencesKey(KEY_STOP_TIMER)
+        private val MAX_STOP_TIMER = floatPreferencesKey(KEY_MAX_STOP_TIMER)
     }
 }

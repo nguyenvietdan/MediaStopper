@@ -6,17 +6,24 @@ import android.media.session.PlaybackState
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.monkey.domain.repository.SharePreferenceRepository
+import com.monkey.domain.repository.SharePreferenceRepository.Constants.KEY_STOP_TIMER
 import com.monkey.domain.repository.SharePreferenceRepository.Constants.KEY_VOLUME
 import com.monkey.mediastopper.R
+import com.monkey.mediastopper.common.ScheduledMediaStopper
+import com.monkey.mediastopper.common.StopMediaWorker
 import com.monkey.mediastopper.common.UISource.getDrawerItems
 import com.monkey.mediastopper.di.IoDispatcher
+import com.monkey.mediastopper.framework.MediaControllerHolder
 import com.monkey.mediastopper.framework.MediaControllerMgr
 import com.monkey.mediastopper.framework.VolumeChangeListener
 import com.monkey.mediastopper.framework.VolumeObserver
 import com.monkey.mediastopper.model.DrawerItem
 import com.monkey.mediastopper.model.MediaItem
 import com.monkey.mediastopper.presentations.navigation.Screen
+import com.monkey.mediastopper.utils.Utils.changeMinuteToMilliseconds
 import com.monkey.mediastopper.utils.Utils.updateOrAddItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,7 +31,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,7 +42,8 @@ class StopperViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     private val controllerManager: MediaControllerMgr,
     val sharePrefs: SharePreferenceRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val scheduledMediaStopper: ScheduledMediaStopper
 ) : ViewModel() {
 
     private val TAG = "StopperViewModel"
@@ -48,6 +59,9 @@ class StopperViewModel @Inject constructor(
     val topBarTitle: StateFlow<String> = _topBarTitle.asStateFlow()
     private val _gesturesEnabled = MutableStateFlow(true)
     val gesturesEnabled: StateFlow<Boolean> = _gesturesEnabled.asStateFlow()
+
+    private val _remainTimer = MutableStateFlow(0L)
+    val remainTimer: StateFlow<Long> = _remainTimer.asStateFlow()
 
     private var _currentVolume = 1
 
@@ -69,11 +83,18 @@ class StopperViewModel @Inject constructor(
         startObserving()
         _currentVolume = getCurrentVolume()
         _drawerItems.value = getDrawerItems(context)
+        MediaControllerHolder.controller = controllerManager
         updateTopBarTitle(_currentScreen.value)
+        viewModelScope.launch(ioDispatcher) {
+            sharePrefs.stopTimer.collectLatest {
+                updateRemainTimer()
+            }
+        }
     }
 
     fun updateCurrentScreen(screen: String) {
         updateTopBarTitle(screen)
+        Log.e(TAG, "updateCurrentScreen: $screen" )
         _currentScreen.value = screen
     }
 
@@ -127,6 +148,7 @@ class StopperViewModel @Inject constructor(
 
     override fun onCleared() {
         volumeObserver.unregister()
+        //MediaControllerHolder.controller = null
         super.onCleared()
     }
 
@@ -158,8 +180,37 @@ class StopperViewModel @Inject constructor(
         _gesturesEnabled.value = enabled
     }
 
+    fun updateTimerStop(minute: Long) {
+        viewModelScope.launch(ioDispatcher) {
+            val milliseconds = TimeUnit.MINUTES.toMillis(minute)
+            Log.i(TAG, "updateTimerStop: $minute $milliseconds")
+            sharePrefs.save(
+                KEY_STOP_TIMER,
+                System.currentTimeMillis() + milliseconds
+            )
+            requestStopMedia(milliseconds)
+            //scheduledMediaStopper.scheduleStopMedia(milliseconds)
+        }
+    }
+
     private fun getCurrentVolume() =
         (context.getSystemService(Context.AUDIO_SERVICE) as AudioManager).getStreamVolume(
             AudioManager.STREAM_MUSIC
         )
+
+    fun updateRemainTimer() {
+        viewModelScope.launch {
+            _remainTimer.value =
+                (sharePrefs.stopTimer.value - System.currentTimeMillis()).coerceAtLeast(0L)
+        }
+    }
+
+    private fun requestStopMedia(time: Long) {
+        val workManager = WorkManager.getInstance(context)
+        workManager.cancelAllWorkByTag("stop_media_task")
+        val stopMediaRequest = OneTimeWorkRequestBuilder<StopMediaWorker>().setInitialDelay(time,
+            TimeUnit.MILLISECONDS
+        ).addTag("stop_media_task").build()
+        workManager.enqueue(stopMediaRequest)
+    }
 }
