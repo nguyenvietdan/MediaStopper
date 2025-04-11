@@ -8,15 +8,18 @@ import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.unit.Constraints
 import kotlin.math.min
 
-class FillMinDimensionModifier: LayoutModifier {
+class FillMinDimensionModifier(val maxSize: Int? = null): LayoutModifier {
     override fun MeasureScope.measure(
         measurable: Measurable,
         constraints: Constraints
     ): MeasureResult {
-        val minDimension = min(constraints.maxWidth, constraints.maxHeight)
+        val minDimension = min(constraints.maxWidth, constraints.maxHeight).let {
+            if (maxSize != null) min(it, maxSize) else it
+        }
         val placeable = measurable.measure(
             Constraints(minDimension, minDimension, minDimension, minDimension)
         )
+
 
         return layout(placeable.width, placeable.height) {
             placeable.placeRelative(0, 0)
@@ -24,4 +27,4 @@ class FillMinDimensionModifier: LayoutModifier {
     }
 }
 
-fun Modifier.fillMinDimension() = this.then(FillMinDimensionModifier())
+fun Modifier.fillMinDimension(maxSize: Int? = null) = this.then(FillMinDimensionModifier(maxSize))

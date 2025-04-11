@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,11 +29,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
+import com.monkey.mediastopper.presentations.utils.fillMinDimension
 import com.monkey.mediastopper.R
 import com.monkey.mediastopper.presentations.theme.GradientColors
 import com.monkey.mediastopper.presentations.theme.OuterBackgroundColor
@@ -48,8 +53,10 @@ fun StopTimerCircularSeekbarScreen(viewModel: StopperViewModel, onAddedStopTimer
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
-    val size = min(screenWidth, screenHeight) / 2f
+    val size = min(screenWidth, screenHeight)
     val context = LocalContext.current
+
+    val density = LocalDensity.current
 
     var value by rememberSaveable {
         mutableStateOf(
@@ -65,12 +72,14 @@ fun StopTimerCircularSeekbarScreen(viewModel: StopperViewModel, onAddedStopTimer
                 .fillMaxSize()
                 /*.background(color = TimerBackgroundColor)*/
                 .padding(padding)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
-                    .size(size)
+                    .fillMinDimension(dpToPx(size))
+                    /*.size(size)*/
                     .padding(16.dp), contentAlignment = Alignment.Center
             ) {
                 CircularSeekbarView(
@@ -140,4 +149,10 @@ fun StopTimerCircularSeekbarScreen(viewModel: StopperViewModel, onAddedStopTimer
         }
 
     }
+}
+
+@Composable
+fun dpToPx(dp: Dp): Int {
+    val density = LocalDensity.current
+    return with(density) { dp.toPx().toInt() }
 }
