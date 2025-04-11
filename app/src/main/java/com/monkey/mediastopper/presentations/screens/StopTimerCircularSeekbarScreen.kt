@@ -1,7 +1,6 @@
 package com.monkey.mediastopper.presentations.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,10 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import com.monkey.mediastopper.R
-import com.monkey.mediastopper.presentations.navigation.Screen
 import com.monkey.mediastopper.presentations.theme.GradientColors
 import com.monkey.mediastopper.presentations.theme.OuterBackgroundColor
-import com.monkey.mediastopper.presentations.theme.TimerBackgroundColor
 import com.monkey.mediastopper.presentations.viewmodel.StopperViewModel
 import com.monkey.mediastopper.presentations.widgets.CircularSeekbarView
 import com.monkey.mediastopper.utils.Utils.formatTime
@@ -86,7 +84,7 @@ fun StopTimerCircularSeekbarScreen(viewModel: StopperViewModel, onAddedStopTimer
                 Text(
                     text = formatTimeFromMinute(value.roundToInt()),
                     style = MaterialTheme.typography.headlineLarge,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
