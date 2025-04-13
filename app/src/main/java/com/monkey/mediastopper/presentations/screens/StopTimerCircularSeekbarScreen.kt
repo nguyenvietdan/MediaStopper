@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,10 +34,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
-import com.monkey.mediastopper.presentations.utils.fillMinDimension
 import com.monkey.mediastopper.R
 import com.monkey.mediastopper.presentations.theme.GradientColors
 import com.monkey.mediastopper.presentations.theme.OuterBackgroundColor
+import com.monkey.mediastopper.presentations.utils.fillMinDimension
 import com.monkey.mediastopper.presentations.viewmodel.StopperViewModel
 import com.monkey.mediastopper.presentations.widgets.CircularSeekbarView
 import com.monkey.mediastopper.utils.Utils.formatTime
@@ -55,8 +53,6 @@ fun StopTimerCircularSeekbarScreen(viewModel: StopperViewModel, onAddedStopTimer
     val screenWidth = configuration.screenWidthDp.dp
     val size = min(screenWidth, screenHeight)
     val context = LocalContext.current
-
-    val density = LocalDensity.current
 
     var value by rememberSaveable {
         mutableStateOf(
