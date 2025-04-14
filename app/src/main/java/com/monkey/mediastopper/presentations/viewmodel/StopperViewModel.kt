@@ -18,6 +18,7 @@ import com.monkey.mediastopper.common.StopMediaWorker
 import com.monkey.mediastopper.common.UISource.getDrawerItems
 import com.monkey.mediastopper.common.getEvent
 import com.monkey.mediastopper.di.IoDispatcher
+import com.monkey.mediastopper.framework.AudioFocusManager
 import com.monkey.mediastopper.framework.MediaControllerHolder
 import com.monkey.mediastopper.framework.MediaControllerMgr
 import com.monkey.mediastopper.framework.MediaStopperSharedDataHolder
@@ -47,7 +48,8 @@ class StopperViewModel @Inject constructor(
     val sharePrefs: SharePreferenceRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val scheduledMediaStopper: ScheduledMediaStopper,
-    private val mediaSharedData: MediaStopperSharedData
+    private val mediaSharedData: MediaStopperSharedData,
+    private val audioFocusManager: AudioFocusManager
 ) : ViewModel() {
 
     private val TAG = "StopperViewModel"
@@ -99,6 +101,7 @@ class StopperViewModel @Inject constructor(
         mediaSharedData.getEvent<Unit>("StopMedias")?.onEach {
             loadMediaItems()
             updatePlaying()
+            stopOtherMedia()
         }?.launchIn(viewModelScope)
     }
 
@@ -217,5 +220,14 @@ class StopperViewModel @Inject constructor(
             TimeUnit.MILLISECONDS
         ).addTag("stop_media_task").build()
         workManager.enqueue(stopMediaRequest)
+    }
+
+    private fun stopOtherMedia() {
+        val granted = audioFocusManager.requestFocus()
+        if (granted) {
+            Log.d(TAG, "Audio focus granted – media apps may pause")
+        } else {
+            Log.w(TAG, "Audio focus request denied")
+        }
     }
 }

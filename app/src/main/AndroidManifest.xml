@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
 
     <application
         android:name=".MediaStopperApplication"
@@ -26,7 +27,7 @@
 
         <service
             android:name=".services.MediaNotificationListenerService"
-            android:exported="false"
+            android:exported="true"
             android:label="Media Stopper Listener"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>

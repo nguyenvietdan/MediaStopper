@@ -40,6 +40,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.monkey.mediastopper.R
@@ -185,14 +186,7 @@ fun TopAppBarScreen(title: String, openDrawer: () -> Unit) {
 fun MediaStopperAppPreview() {
     MediaStopperTheme {
         MediaStopperApp(
-            rememberNavController(), StopperViewModel(
-                context = TODO(),
-                controllerManager = TODO(),
-                sharePrefs = TODO(),
-                Dispatchers.IO,
-                scheduledMediaStopper = TODO(),
-                mediaSharedData = TODO()
-            )
+            rememberNavController(), hiltViewModel()
         )
     }
 }

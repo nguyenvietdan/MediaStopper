@@ -1,6 +1,7 @@
 package com.monkey.mediastopper.di
 
 import android.content.Context
+import com.monkey.mediastopper.framework.AudioFocusManager
 import com.monkey.mediastopper.framework.MediaControllerMgr
 import dagger.Module
 import dagger.Provides
@@ -19,4 +20,9 @@ class FrameworkModule {
     ): MediaControllerMgr {
         return MediaControllerMgr(context)
     }
+
+    @Provides
+    @Singleton
+    fun provideAudioFocusManager(@ApplicationContext context: Context): AudioFocusManager =
+        AudioFocusManager(context)
 }
