@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
 import android.media.VolumeProvider
 import android.media.session.MediaController
+import android.media.session.PlaybackState
 import android.os.SystemClock
 import android.util.Log
 import com.monkey.mediastopper.model.MediaItem
@@ -51,16 +52,17 @@ class MediaControllerMgr @Inject constructor(@ApplicationContext private val con
     fun addController(pkg: String, controller: MediaController) {
         try {
             _controllerMap[pkg] = controller
-            Log.e(TAG, "addController: add success for $pkg state ${controller.playbackState?.state ?: -1}")
+            Log.e(
+                TAG,
+                "addController: add success for $pkg state ${controller.playbackState?.state ?: -1}"
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create MediaController: ${e.message}")
         }
     }
 
     fun removeMedia(pkg: String) {
-        Log.i(TAG, "removeMedia: $pkg before ${_controllerMap.size}")
         _controllerMap.remove(pkg)
-        Log.e(TAG, "removeMedia: $pkg after ${_controllerMap.size}" )
     }
 
     fun pauseMedia(pkg: String) {
@@ -83,7 +85,7 @@ class MediaControllerMgr @Inject constructor(@ApplicationContext private val con
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         audioManager.abandonAudioFocusRequest(
             AudioFocusRequest.Builder(AUDIOFOCUS_REQUEST_GRANTED)
-            .build()
+                .build()
         )
     }
 
@@ -109,30 +111,42 @@ class MediaControllerMgr @Inject constructor(@ApplicationContext private val con
         }
     }
 
-    fun getMediaItem(packageName: String): MediaItem? {
-        Log.i(TAG, "getMediaItem: package $packageName controller ${_controllerMap[packageName]}")
-        val mediaController = _controllerMap[packageName] ?: return null
+    fun getMediaItems(): List<MediaItem> =
+        _controllerMap.values.map { createMediaItem(it) }
+
+    fun isPlaying(): Boolean =
+        _controllerMap.values.any { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+
+    fun createMediaItem(mediaController: MediaController): MediaItem {
         val metadata = mediaController.metadata
         val title = metadata?.description?.title?.toString() ?: "Unknown"
         val durationMs = metadata?.getLong(mm.METADATA_KEY_DURATION) ?: 0L
         val currentPosition = mediaController.playbackState?.let {
-            val timeDelta = SystemClock.elapsedRealtime() - it.lastPositionUpdateTime // Calculate time passed since last update
+            val timeDelta =
+                SystemClock.elapsedRealtime() - it.lastPositionUpdateTime // Calculate time passed since last update
             it.position + (timeDelta * it.playbackSpeed).toLong() // Calculate current position
         }?.coerceAtMost(durationMs) ?: 0L
 
-        val appName = getAppNameFromPackage(context, packageName)
+        val appName = getAppNameFromPackage(context, mediaController.packageName)
 
-        val currentVolume = if (mediaController.playbackInfo.volumeControl == VolumeProvider.VOLUME_CONTROL_ABSOLUTE) mediaController.playbackInfo.currentVolume else Int.MAX_VALUE
+        val currentVolume =
+            if (mediaController.playbackInfo.volumeControl == VolumeProvider.VOLUME_CONTROL_ABSOLUTE) mediaController.playbackInfo.currentVolume else Int.MAX_VALUE
 
         return MediaItem(
             appName = appName,
             title,
-            packageName,
+            mediaController.packageName,
             mediaController.playbackState?.state ?: 0,
             durationMs,
             currentPosition,
             currentVolume
         )
+    }
+
+    fun getMediaItem(packageName: String): MediaItem? {
+        Log.i(TAG, "getMediaItem: package $packageName controller ${_controllerMap[packageName]}")
+        val mediaController = _controllerMap[packageName] ?: return null
+        return createMediaItem(mediaController)
     }
 
 }

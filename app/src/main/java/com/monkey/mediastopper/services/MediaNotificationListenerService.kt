@@ -48,6 +48,11 @@ class MediaNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        controllerManager.clearAll()
+    }
+
     private fun handleMediaSession(sbn: StatusBarNotification, isPosted: Boolean) {
         // get token from notification and check if it's a media notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

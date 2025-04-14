@@ -190,7 +190,8 @@ fun MediaStopperAppPreview() {
                 controllerManager = TODO(),
                 sharePrefs = TODO(),
                 Dispatchers.IO,
-                scheduledMediaStopper = TODO()
+                scheduledMediaStopper = TODO(),
+                mediaSharedData = TODO()
             )
         )
     }

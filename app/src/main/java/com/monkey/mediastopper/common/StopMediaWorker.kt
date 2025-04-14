@@ -1,12 +1,16 @@
 package com.monkey.mediastopper.common
 
 import android.content.Context
+import android.media.AudioManager.ADJUST_MUTE
+import android.media.AudioManager.STREAM_MUSIC
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.monkey.mediastopper.framework.MediaControllerHolder
 import com.monkey.mediastopper.framework.MediaControllerMgr
+import com.monkey.mediastopper.framework.MediaStopperSharedDataHolder
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 class StopMediaWorker @Inject constructor(
@@ -34,5 +38,21 @@ class StopMediaWorker @Inject constructor(
 
     private fun stopAllMedia() {
         mediaControllerMgr?.stopAllMedia()
+        streamMute()
+        emitStopEvent()
+    }
+
+    private fun streamMute() {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+        audioManager.setStreamVolume(STREAM_MUSIC, ADJUST_MUTE, 0)
+    }
+
+    private fun emitStopEvent() {
+        runBlocking {
+            MediaStopperSharedDataHolder.mediaStopperSharedData?.let {
+                it.getEvent<Unit>("StopMedias")?.emit(Unit)
+            }
+        }
+
     }
 }
