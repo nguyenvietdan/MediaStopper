@@ -18,8 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,12 +54,15 @@ fun StopTimerCircularSeekbarScreen(viewModel: StopperViewModel, onAddedStopTimer
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
     val size = min(screenWidth, screenHeight)
+    val maxStopTimer = viewModel.sharePrefs.maxStopTimer.value
     val context = LocalContext.current
 
     var value by rememberSaveable {
-        mutableStateOf(
-            ((viewModel.sharePrefs.stopTimer.value - System.currentTimeMillis()) / (60 * 1000)).coerceAtLeast(
-                0
+        mutableFloatStateOf(
+            TimeUnit.MILLISECONDS.toMinutes(
+                (viewModel.sharePrefs.stopTimer.value - System.currentTimeMillis()).coerceAtLeast(
+                    0L
+                )
             ).toFloat()
         )
     }
@@ -83,7 +88,7 @@ fun StopTimerCircularSeekbarScreen(viewModel: StopperViewModel, onAddedStopTimer
                     onChange = { newValue ->
                         value = newValue
                     },
-                    maxValue = viewModel.sharePrefs.maxStopTimer.value
+                    maxValue = maxStopTimer
                 )
 
                 Text(
